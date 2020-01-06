@@ -1,0 +1,126 @@
+1. 커널 컴파일(빌드)하기
+    A.
+      커널을 빌드하기 위한 두 가지 주요 방법이 있습니다. Raspberry Pi에서 로컬로 빌드할 수 있으며 시간이 오래 걸립니다. 또는 훨씬 빨리 크로스 컴파일 할 수 있지만 더 많은 설정이 필요합니다.
+
+      로컬 빌드하기
+      Raspberry Pi에서 먼저 최신 버전의 Raspbian을 설치하십시오. 그런 다음 Pi를 부팅하고 이더넷을 연결하여 소스에 액세스한 다음 로그인하십시오.
+
+      sudo apt install git bc bison flex libssl-dev make
+      소스를 받습니다. 시간이 좀 걸립니다.
+
+      git clone --depth=1 https://github.com/raspberrypi/linux
+
+      소스 선택
+      위의 git clone 명령은 현재 활성 브랜치(우리가 Raspbian 이미지를 빌드하는 지점)를 기록없이 다운로드합니다. --depth=1을 생략하면 모든 지점의 전체 히스토리를 포함하여 전체 저장소가 다운로드되지만 훨씬 오래 걸리고 훨씬 더 많은 스토리지를 차지합니다.
+
+      히스토리가 없는 다른 브랜치를 다운로드하려면 --branch 옵션을 사용하십시오.
+
+      git clone --depth=1 --branch rpi-4.18.y https://github.com/raspberrypi/linux
+      사용 가능한 브랜치에 대한 정보는 원래 GitHub 리포지토리를 참조하십시오.
+
+      커널 구성
+      커널을 구성합니다. 기본 구성에서 커널을 자세히 설정하거나, 필요한 기능을 추가하거나 제거하기 위해 다른 소스로부터 패치를 적용할 수 있습니다.
+
+      Raspberry Pi 버전에 따라 다음 명령을 실행하십시오.
+
+      Raspberry Pi 1, Pi Zero, Pi Zero W 및 Compute Module 기본 빌드 구성
+      cd linux
+      KERNEL=kernel
+      make bcmrpi_defconfig
+      Raspberry Pi 2, Pi 3, Pi 3+ 및 Compute Module 3 기본 빌드 구성
+      cd linux
+      KERNEL=kernel7
+      make bcm2709_defconfig
+      Raspberry Pi 4
+      cd linux
+      KERNEL=kernel7l
+      make bcm2711_defconfig
+      빌드하기
+      커널, 모듈 및 장치 트리 blob을 빌드하고 설치하십시오. 이 단계는 사용중인 Pi 모델에 따라 시간이 오래 걸릴 수 있습니다.
+
+      make -j4 zImage modules dtbs
+      sudo make modules_install
+      sudo cp arch/arm/boot/dts/*.dtb /boot/
+      sudo cp arch/arm/boot/dts/overlays/*.dtb* /boot/overlays/
+      sudo cp arch/arm/boot/dts/overlays/README /boot/overlays/
+      sudo cp arch/arm/boot/zImage /boot/$KERNEL.img
+      참고 : Raspberry Pi 2/3/4에서 -j4 플래그는 작업을 4 개의 코어로 분할하여 컴파일 속도를 크게 향상시킵니다.
+
+      크로스 컴파일
+      먼저 적합한 Linux 크로스 컴파일 호스트가 필요합니다. 우분투를 사용하는 경향이 있습니다. Raspbian은 데비안 배포판이므로 명령 줄과 같이 여러 측면이 비슷하다는 것을 의미합니다.
+
+      Windows에서 VirtualBox(또는 VMWare)를 사용하여 이 작업을 수행하거나 컴퓨터에 직접 설치할 수 있습니다. 참고로 온라인 Wikihow의 지침을 따를 수 있습니다.
+
+      툴체인 설치
+      다음 명령을 사용하여 툴체인을 홈 폴더로 다운로드하십시오.
+
+      git clone https://github.com/raspberrypi/tools ~/tools
+      $ PATH 환경 변수를 업데이트하면 시스템이 크로스 컴파일에 필요한 파일 위치를 인식합니다. 32 비트 호스트 시스템에서 다음을 사용하여 업데이트하고 다시 로드 할 수 있습니다.
+
+      echo PATH=\$PATH:~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin >> ~/.bashrc
+      source ~/.bashrc
+      64 비트 호스트 시스템인 경우 다음을 사용해야 합니다.
+
+      echo PATH=\$PATH:~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin >> ~/.bashrc
+      source ~/.bashrc
+      소스 받기
+      현재 분기에 대한 최소 소스 트리를 다운로드하려면 다음을 실행하십시오.
+
+      git clone --depth=1 https://github.com/raspberrypi/linux
+      다른 브랜치를 선택하는 방법에 대한 지침은 위의 소스 선택을 참조하십시오.
+
+      소스 빌드
+      크로스 컴파일을위한 소스를 빌드하려면 다음을 실행하여 머신에 필요한 종속성이 있는지 확인하십시오.
+
+      sudo apt install git bc bison flex libssl-dev make
+      다른 것들이 필요한 경우 문서를 변경하기 위해 풀 요청을 제출하십시오.
+
+      소스 및 장치 트리 파일을 빌드하려면 다음 명령을 입력하십시오.
+
+      Pi 1, Pi Zero, Pi Zero W 또는 Compute Module의 경우 :
+
+      cd linux
+      KERNEL=kernel
+      make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcmrpi_defconfig
+      Pi 2, Pi 3, Pi 3+ 또는 Compute Module 3의 경우 :
+
+      cd linux
+      KERNEL=kernel7
+      make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
+      라즈베리 파이 4의 경우 :
+
+      cd linux
+      KERNEL=kernel7l
+      make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2711_defconfig
+
+
+
+    B.
+      pi@raspberrypi:~ $ sudo apt install git bc bison flex libssl-dev make
+      소스를 받습니다. 시간이 좀 걸립니다.
+      pi@raspberrypi:~ $ git clone --depth=1 https://github.com/raspberrypi/linux
+      Raspberry Pi 2, Pi 3, Pi 3+ 및 Compute Module 3 기본 빌드 구성
+      pi@raspberrypi:~ $ cd linux
+      pi@raspberrypi:~/linux $ KERNEL=kernel7
+      pi@raspberrypi:~/linux $ make bcm2709_defconfig
+      빌드하기 - zImage(커널 이미지), modules(커널 모듈), dtbs(Device Tree Blob)
+      pi@raspberrypi:~/linux $ make -j4 zImage modules dtbs
+      
+      
+2. 커널 업데이트
+    빌드된 커널 이미지 바꾸기
+    pi@raspberrypi:~/linux $ sudo cp arch/arm/boot/zImage /boot/$KERNEL.img
+    빌드된 dtbs 바꾸기
+    pi@raspberrypi:~/linux $ sudo cp arch/arm/boot/dts/*.dtb /boot/
+    pi@raspberrypi:~/linux $ sudo cp arch/arm/boot/dts/overlays/*.dtb* /boot/overlays/
+    pi@raspberrypi:~/linux $ sudo cp arch/arm/boot/dts/overlays/README /boot/overlays/
+    빌드된 커널 모듈 인스톨
+    pi@raspberrypi:~/linux $ sudo make modules_install
+    리눅스 버전 확인
+    pi@raspberrypi:~/linux $ uname -a
+    Linux raspberrypi 4.19.75-v7+ 
+    리부팅
+    pi@raspberrypi:~/linux $ sudo reboot
+    리부팅 후 버전 확인
+    pi@raspberrypi:~/linux $ uname -a
+    Linux raspberrypi 4.19.89-v7+

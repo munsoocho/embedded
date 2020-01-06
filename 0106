@@ -94,7 +94,6 @@
       make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2711_defconfig
 
 
-
     B.
       pi@raspberrypi:~ $ sudo apt install git bc bison flex libssl-dev make
       소스를 받습니다. 시간이 좀 걸립니다.
@@ -105,6 +104,8 @@
       pi@raspberrypi:~/linux $ make bcm2709_defconfig
       빌드하기 - zImage(커널 이미지), modules(커널 모듈), dtbs(Device Tree Blob)
       pi@raspberrypi:~/linux $ make -j4 zImage modules dtbs
+      
+      
       
       
 2. 커널 업데이트
